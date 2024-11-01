@@ -64,4 +64,29 @@ local mouse = player:GetMouse()
 local camera = workspace.CurrentCamera
 local values = replicatedStorage:FindFirstChild("Values")
 
-local Library = 
+local Library = https://raw.githubusercontent.com/loadstringguy/sigmhack/refs/heads/main/library.lua
+local example = library:CreateWindow({
+    text = "sigmhack : main"
+})
+example:AddToggle("Magnets", function(state)
+getfenv().mags =(state and true or false)
+Workspace = game:GetService("Workspace")
+
+local rangee = 25
+
+Workspace.ChildAdded:Connect(function(Child)
+
+if Child:IsA("BasePart") and Child.Name == "Football" then
+
+Child.Size = Vector3.new(rangee, rangee, rangee)
+
+Child.CanCollide = false
+
+end
+
+local example = library:CreateWindow({
+        text = "Physics"
+})
+
+
+end)
