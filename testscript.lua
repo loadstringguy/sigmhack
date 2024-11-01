@@ -79,3 +79,49 @@ example:AddToggle("Magnets", function(state)
         end
     end)
 end)
+
+local example = Library:CreateWindow({
+        text = "physics"
+})
+example:AddToggle("Quick TP", function(state)
+        getfenv().tp = (state and true or false)
+        local function handleQuickTP()
+    if quickTPEnabled then
+        local character = LocalPlayer.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            local humanoidRootPart = character.HumanoidRootPart
+            humanoidRootPart.CFrame = humanoidRootPart.CFrame + humanoidRootPart.CFrame.LookVector * tpDistance
+        end
+    end
+end
+
+local function onInputBegan(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.F then
+        handleQuickTP()
+    end
+end
+
+UserInputService.InputBegan:Connect(onInputBegan)
+
+example:AddToggle("Quick Tp Mobile Button"  function(state)
+        getfenv().button = (state and true or false)
+
+    local function createMobileQuickTPButton()
+    local screenGui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.fromOffset(120, 60)
+    button.Position = UDim2.fromScale(0.5, 0.9) - UDim2.fromOffset(60, 30)
+    button.Text = "TP"
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    button.BorderSizePixel = 2
+    button.BorderColor3 = Color3.fromRGB(255, 255, 255)
+    button.TextStrokeTransparency = 0.8
+    button.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    button.Font = Enum.Font.GothamBold
+    button.TextSize = 24
+    button.AutoButtonColor = false
+    button.Visible = false
+    button.Parent = screenGui
+    return button
+end          
