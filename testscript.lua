@@ -129,10 +129,11 @@ example:AddToggle("Quick TP Mobile Button", function(state)
         button.Visible = true
         button.Parent = screenGui
 
-        button.MouseButton1Click:Connect(function()
+        MobileQuickTPButton.MouseButton1Click:Connect(function()
+        if MobileQuickTPToggle.Value then
             handleQuickTP()
-        end)
-    end
+        end
+    end)
 
     if getgenv().button then
         createMobileQuickTPButton()
