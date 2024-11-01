@@ -87,7 +87,7 @@ local example = Library:CreateWindow({
 example:AddToggle("Quick TP", function(state)
     getgenv().tp = (state and true or false)
     local quickTPEnabled = getgenv().tp
-    local tpDistance = 10 -- Set your desired teleport distance here
+    local tpDistance = 2
 
     local function handleQuickTP()
         if quickTPEnabled then
@@ -130,17 +130,50 @@ example:AddToggle("Quick TP Mobile Button", function(state)
         button.Visible = true
         button.Parent = screenGui
 
-        MobileQuickTPButton.MouseButton1Click:Connect(function()
+        QuickTPToggle:OnChanged(function()
+        quickTPEnabled = QuickTPToggle.Value
+    end)
+
+    MobileQuickTPToggle:OnChanged(function()
+        MobileQuickTPButton.Visible = MobileQuickTPToggle.Value
+    end)
+
+    MobileQuickTPButton.MouseButton1Click:Connect(function()
         if MobileQuickTPToggle.Value then
             handleQuickTP()
         end
     end)
 
-   MobileQuickTPToggle:OnChanged(function()
-        MobileQuickTPButton.Visible = MobileQuickTPToggle.Value
-    end)         
+    example:AddToggle("Ball Path Prediction", function(state)
+                getgenv().pathpred = (state and true or false)
 
-    if getgenv().button then
-        createMobileQuickTPButton()
-    end
-end)
+task.spawn(function()
+    if not visualiseBallPath.Value then return end
+    local initialVelocity = ball.AssemblyLinearVelocity
+    local a0, a1 = Instance.new("Attachment"), Instance.new("Attachment")
+    a0.Parent = workspace.Terrain
+    a1.Parent = workspace.Terrain
+
+    local beam = Instance.new("Beam", workspace.Terrain)
+    beam.Attachment0 = a0
+    beam.Attachment1 = a1
+    beam.Segments = 500
+    beam.Width0 = 0.5
+    beam.Width1 = 0.5
+    beam.Transparency = NumberSequence.new(0)
+    beam.Color = ColorSequence.new(Color3.new(1, 1, 1)) -- White color
+
+    local g = Vector3.new(0, -28, 0)
+    local x0 = ball.Position
+    local v0 = initialVelocity
+
+    local curve0, curve1, cf1, cf2 = beamProjectile(g, v0, x0, 5)
+    beam.CurveSize0 = curve0
+    beam.CurveSize1 = curve1
+    a0.CFrame = a0.Parent.CFrame:Inverse() * cf1
+    a1.CFrame = a1.Parent.CFrame:Inverse() * cf2
+
+    repeat task.wait() until ball.Parent ~= workspace
+    beam:Destroy()
+           end
+    end)
