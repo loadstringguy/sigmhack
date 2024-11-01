@@ -119,6 +119,7 @@ example:AddToggle("Quick TP Mobile Button", function(state)
         button.Text = "TP"
         button.TextColor3 = Color3.fromRGB(255, 255, 255)
         button.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+        button.BackgroundTransparency = 0.8
         button.BorderSizePixel = 2
         button.BorderColor3 = Color3.fromRGB(255, 255, 255)
         button.TextStrokeTransparency = 0.8
@@ -129,11 +130,10 @@ example:AddToggle("Quick TP Mobile Button", function(state)
         button.Visible = true
         button.Parent = screenGui
 
-        MobileQuickTPButton.MouseButton1Click:Connect(function()
-        if MobileQuickTPToggle.Value then
+        button.MouseButton1Click:Connect(function()
             handleQuickTP()
-        end
-    end)
+        end)
+    end
 
     if getgenv().button then
         createMobileQuickTPButton()
