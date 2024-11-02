@@ -63,7 +63,7 @@ local values = replicatedStorage:FindFirstChild("Values")
 
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/loadstringguy/sigmhack/refs/heads/main/library.lua"))()
 local example = Library:CreateWindow({
-    text = "sigmhack : main"
+    text = "sigmhack : catching"
 })
 
 example:AddToggle("Magnets", function(state)
@@ -91,7 +91,7 @@ example:AddToggle("View MS Hitbox", function(state)
 
         local hitbox = Instance.new("Part")
         hitbox.Size = hitboxSize
-        hitbox.Transparency = 0.5
+        hitbox.Transparency = 0.3
         hitbox.Anchored = true
         hitbox.CanCollide = false
         hitbox.Material = Enum.Material.ForceField
@@ -117,7 +117,12 @@ example:AddToggle("View MS Hitbox", function(state)
     end)
 end)
 
-example:AddToggle("Quick TP", function(state)
+
+local example1 = Library:CreateWindow({
+    text = "sigmhack : physics"
+})
+
+example1:AddToggle("Quick TP", function(state)
     getgenv().tp = (state and true or false)
     local quickTPEnabled = getgenv().tp
     local tpDistance = 2
@@ -141,7 +146,7 @@ example:AddToggle("Quick TP", function(state)
     userInputService.InputBegan:Connect(onInputBegan)
 end)
 
-example:AddToggle("Ball Path Prediction", function(state)
+example1:AddToggle("Ball Path Prediction", function(state)
     getgenv().pathpred = (state and true or false)
     
     local Grapher = {}
@@ -257,4 +262,10 @@ example:AddToggle("Ball Path Prediction", function(state)
     end)
 
     return Grapher
+end)
+
+example1:AddToggle("No Jump Cooldown", function(state)
+    getgenv().nojpcd = (state and true or false)
+humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
+end
 end)
