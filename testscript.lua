@@ -116,7 +116,7 @@ example:AddToggle("Quick TP Mobile Button", function(state)
         local button = Instance.new("TextButton")
         button.Size = UDim2.fromOffset(120, 60)
         button.Position = UDim2.fromScale(0.5, 0.9) - UDim2.fromOffset(60, 30)
-        button.Text = "TP"
+        button.Text = "Teleport"
         button.TextColor3 = Color3.fromRGB(255, 255, 255)
         button.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
         button.BackgroundTransparency = 0.8
@@ -130,19 +130,15 @@ example:AddToggle("Quick TP Mobile Button", function(state)
         button.Visible = true
         button.Parent = screenGui
 
-        QuickTPToggle:OnChanged(function()
-        quickTPEnabled = QuickTPToggle.Value
-    end)
-
-    MobileQuickTPToggle:OnChanged(function()
-        MobileQuickTPButton.Visible = MobileQuickTPToggle.Value
-    end)
-
-    MobileQuickTPButton.MouseButton1Click:Connect(function()
-        if MobileQuickTPToggle.Value then
+        MobileQuickTPButton.MouseButton1Click:Connect(function()
             handleQuickTP()
-        end
-    end)
+        end)
+    end
+
+    if getgenv().button then
+        createMobileQuickTPButton()
+    end
+end)
 
     example:AddToggle("Ball Path Prediction", function(state)
     getgenv().pathpred = (state and true or false)
