@@ -274,8 +274,6 @@ end)
 
 example1:AddToggle("Optimal Jump", function(state)
     getgenv().opju = (state and true or false)
-    task.spawn(function()
-        if not optimalJumpPredictions.Value then return end
         local initialVelocity = ball.AssemblyLinearVelocity
         local optimalPosition = Vector3.zero
         local currentPosition = ball.Position
