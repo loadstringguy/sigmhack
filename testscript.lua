@@ -15,7 +15,7 @@ local Hooks = {}
 local HandshakeInts = {}
 
 LPH_NO_VIRTUALIZE(function()
-    for i, v in getgc() do
+    for i, v in pairs(getgc()) do
         if typeof(v) == "function" and islclosure(v) then
             if (#getprotos(v) == 1) and table.find(getconstants(getproto(v, 1)), 4000001) then
                 hookfunction(v, function() end)
@@ -32,7 +32,7 @@ Hooks.__namecall = hookmetamethod(game, "__namecall", LPH_NO_VIRTUALIZE(function
         if (#HandshakeInts == 0) then
             HandshakeInts = {table.unpack(Args[2], 2, 18)}
         else
-            for i, v in HandshakeInts do
+            for i, v in pairs(HandshakeInts) do
                 Args[2][i + 1] = v
             end
         end
@@ -81,47 +81,41 @@ example:AddToggle("Magnets", function(state)
 end)
 
 example:AddToggle("View MS Hitbox", function(state)
-        getfenv().mshitbox = (state and true or false)
+    getfenv().mshitbox = (state and true or false)
 
-local magnetEnabled = true
-local hitboxSize = Vector3.new(25, 25, 25)
-local hitboxColor = Color3.fromRGB(255, 255, 255)
+    local magnetEnabled = true
+    local hitboxSize = Vector3.new(25, 25, 25)
 
-local function createHitbox(target)
-    if not target:IsA("BasePart") then return end
+    local function createHitbox(target)
+        if not target:IsA("BasePart") then return end
 
-    local hitbox = Instance.new("Part")
-    hitbox.Size = hitboxSize
-    hitbox.Transparency = 0.5
-    hitbox.Color = hitboxColor
-    hitbox.Anchored = true
-    hitbox.CanCollide = false
-    hitbox.Material = Enum.Material.ForceField
-    hitbox.Name = "MagnetHitbox"
-    hitbox.CFrame = target.CFrame
-    hitbox.Parent = target
+        local hitbox = Instance.new("Part")
+        hitbox.Size = hitboxSize
+        hitbox.Transparency = 0.5
+        hitbox.Anchored = true
+        hitbox.CanCollide = false
+        hitbox.Material = Enum.Material.ForceField
+        hitbox.Name = "MagnetHitbox"
+        hitbox.CFrame = target.CFrame
+        hitbox.Parent = target
 
-    local function updateHitbox()
-        while magnetEnabled and target and target.Parent do
-            hitbox.CFrame = target.CFrame
-            task.wait()
+        local function updateHitbox()
+            while magnetEnabled and target and target.Parent do
+                hitbox.CFrame = target.CFrame
+                task.wait()
+            end
+            hitbox:Destroy()
         end
-        hitbox:Destroy()
+
+        task.spawn(updateHitbox)
     end
 
-    task.spawn(updateHitbox)
-end
-
-workspace.ChildAdded:Connect(function(child)
-    if child.Name == "Football" and child:IsA("BasePart") and magnetEnabled then
-        createHitbox(child)
-    end
+    workspace.ChildAdded:Connect(function(child)
+        if child.Name == "Football" and child:IsA("BasePart") and magnetEnabled then
+            createHitbox(child)
+        end
+    end)
 end)
-
-
-local example = Library:CreateWindow({
-    text = "Physics"
-})
 
 example:AddToggle("Quick TP", function(state)
     getgenv().tp = (state and true or false)
@@ -155,7 +149,6 @@ example:AddToggle("Ball Path Prediction", function(state)
     Grapher.Segment = Instance.new("Part")
     Grapher.Segment.Anchored = true
     Grapher.Segment.Transparency = 0.3
-    Grapher.Segment.Color = Color3.fromRGB(255, 255, 255) -- White color
     Grapher.Segment.Material = Enum.Material.Neon
     Grapher.Segment.CanCollide = false
     Grapher.Segment.Size = Vector3.new(0.2, 0.2, 0.2)
@@ -168,7 +161,7 @@ example:AddToggle("Ball Path Prediction", function(state)
     Grapher.CastStep = 3 / 60
     Grapher.LastSavedPower = 60
     Grapher.SegmentLifetime = 8
-    Grapher.VisualizerEnabled = true -- Start the visualizer instantly
+    Grapher.VisualizerEnabled = true
 
     function Grapher:GetCollidables()
         local Collidables = {}
@@ -211,7 +204,6 @@ example:AddToggle("Ball Path Prediction", function(state)
             highlight.Enabled = true
             highlight.OutlineColor = Grapher.Segment.Color
             highlight.OutlineTransparency = Grapher.Segment.Transparency
-            highlight.FillColor = Color3.fromRGB(255, 255, 255)
             highlight.FillTransparency = 0.7
         end
 
@@ -219,16 +211,12 @@ example:AddToggle("Ball Path Prediction", function(state)
             elapsed = elapsed + Grapher.CastStep
             local nextPos = origin + velocity * elapsed - Vector3.new(0, 0.5 * 28 * elapsed ^ 2, 0)
 
-            -- Create the beam segment
             local segment = self.Segment:Clone()
             segment.Position = (prevPos + nextPos) / 2
             segment.Size = Vector3.new(0.2, 0.2, (prevPos - nextPos).magnitude)
             segment.CFrame = CFrame.new(prevPos, nextPos) * CFrame.new(0, 0, -segment.Size.Z / 2)
-            segment.Color = Grapher.Segment.Color
-            segment.Transparency = Grapher.Segment.Transparency
             segment.Parent = workspace
 
-            -- Destroy the beam segment after the defined lifetime
             task.delay(Grapher.SegmentLifetime, function()
                 if segment and segment.Parent then
                     segment:Destroy()
