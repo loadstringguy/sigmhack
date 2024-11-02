@@ -108,68 +108,125 @@ example:AddToggle("Quick TP", function(state)
     userInputService.InputBegan:Connect(onInputBegan)
 end)
 
-example:AddToggle("Quick TP Mobile Button", function(state)
-    getgenv().MobileQuickTPButton = (state and true or false)
-
-    local function createMobileQuickTPButton()
-        local screenGui = Instance.new("ScreenGui", player:FindFirstChildOfClass("PlayerGui"))
-        local button = Instance.new("TextButton")
-        button.Size = UDim2.fromOffset(120, 60)
-        button.Position = UDim2.fromScale(0.5, 0.9) - UDim2.fromOffset(60, 30)
-        button.Text = "Teleport"
-        button.TextColor3 = Color3.fromRGB(255, 255, 255)
-        button.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-        button.BackgroundTransparency = 0.8
-        button.BorderSizePixel = 2
-        button.BorderColor3 = Color3.fromRGB(255, 255, 255)
-        button.TextStrokeTransparency = 0.8
-        button.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-        button.Font = Enum.Font.GothamBold
-        button.TextSize = 24
-        button.AutoButtonColor = false
-        button.Visible = true
-        button.Parent = screenGui
-
-        MobileQuickTPButton.MouseButton1Click:Connect(function()
-            handleQuickTP()
-        end)
-    end
-
-    if getgenv().button then
-        createMobileQuickTPButton()
-    end
-end)
 
     example:AddToggle("Ball Path Prediction", function(state)
     getgenv().pathpred = (state and true or false)
+    local Grapher = {}
 
-    task.spawn(function()
-        if not getgenv().pathpred then return end
-        local initialVelocity = ball.AssemblyLinearVelocity
-        local a0, a1 = Instance.new("Attachment"), Instance.new("Attachment")
-        a0.Parent = workspace.Terrain
-        a1.Parent = workspace.Terrain
+Grapher.Segment = Instance.new("Part")
+Grapher.Segment.Anchored = true
+Grapher.Segment.Transparency = 0.3
+Grapher.Segment.Color = Color3.fromRGB(255, 255, 255) -- White color
+Grapher.Segment.Material = Enum.Material.Neon
+Grapher.Segment.CanCollide = false
+Grapher.Segment.Size = Vector3.new(0.2, 0.2, 0.2)
+Grapher.Segment.Name = "BeamSegment"
 
-        local beam = Instance.new("Beam", workspace.Terrain)
-        beam.Attachment0 = a0
-        beam.Attachment1 = a1
-        beam.Segments = 500
-        beam.Width0 = 0.5
-        beam.Width1 = 0.5
-        beam.Transparency = NumberSequence.new(0)
-        beam.Color = ColorSequence.new(Color3.new(1, 1, 1)) -- White color
+Grapher.Params = RaycastParams.new()
+Grapher.Params.IgnoreWater = true
+Grapher.Params.FilterType = Enum.RaycastFilterType.Whitelist
 
-        local g = Vector3.new(0, -28, 0)
-        local x0 = ball.Position
-        local v0 = initialVelocity
+Grapher.CastStep = 3 / 60
+Grapher.LastSavedPower = 60
+Grapher.SegmentLifetime = 8
+Grapher.VisualizerEnabled = true -- Start the visualizer instantly
 
-        local curve0, curve1, cf1, cf2 = beamProjectile(g, v0, x0, 5)
-        beam.CurveSize0 = curve0
-        beam.CurveSize1 = curve1
-        a0.CFrame = a0.Parent.CFrame:Inverse() * cf1
-        a1.CFrame = a1.Parent.CFrame:Inverse() * cf2
+function Grapher:GetCollidables()
+    local Collidables = {}
 
-        repeat task.wait() until ball.Parent ~= workspace
-        beam:Destroy()
-    end)
+    for _, part in ipairs(workspace:GetDescendants()) do
+        if part:IsA("BasePart") and part.CanCollide == true then
+            table.insert(Collidables, part)
+        end
+    end
+    return Collidables
+end
+
+function Grapher:WipeMarkers()
+    for _, obj in pairs(workspace:GetChildren()) do
+        if obj.Name == "BeamSegment" then
+            obj:Destroy()
+        end
+    end
+end
+
+function Grapher:GetLanding(origin, velocity, target)
+    local elapsed = 0
+    local prevPos = origin
+
+    self.Params.FilterDescendantsInstances = self:GetCollidables()
+
+    local highlight = nil
+
+    if target then
+        for _, existing in ipairs(game.CoreGui:GetChildren()) do
+            if existing:IsA("Highlight") and existing.Adornee == target then
+                wait(4)
+                existing:Destroy()
+            end
+        end
+
+        highlight = Instance.new("Highlight", game.CoreGui)
+        highlight.Adornee = target
+        highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        highlight.Enabled = true
+        highlight.OutlineColor = Grapher.Segment.Color
+        highlight.OutlineTransparency = Grapher.Segment.Transparency
+        highlight.FillColor = Color3.fromRGB(255, 255, 255)
+        highlight.FillTransparency = 0.7
+    end
+
+    while Grapher.VisualizerEnabled do
+        elapsed = elapsed + Grapher.CastStep
+        local nextPos = origin + velocity * elapsed - Vector3.new(0, 0.5 * 28 * elapsed ^ 2, 0)
+
+        -- Create the beam segment
+        local segment = self.Segment:Clone()
+        segment.Position = (prevPos + nextPos) / 2
+        segment.Size = Vector3.new(0.2, 0.2, (prevPos - nextPos).magnitude)
+        segment.CFrame = CFrame.new(prevPos, nextPos) * CFrame.new(0, 0, -segment.Size.Z / 2)
+        segment.Color = Grapher.Segment.Color
+        segment.Transparency = Grapher.Segment.Transparency
+        segment.Parent = workspace
+
+        -- Destroy the beam segment after the defined lifetime
+        task.delay(Grapher.SegmentLifetime, function()
+            if segment and segment.Parent then
+                segment:Destroy()
+            end
+        end)
+
+        prevPos = nextPos
+
+        if target and highlight and (target.Parent ~= workspace or not target:FindFirstChildOfClass("BodyForce")) then
+            highlight:Destroy()
+            self:WipeMarkers()
+            break
+        end
+
+        task.wait()
+    end
+end
+
+function Grapher:StartVisualizer()
+    Grapher.VisualizerEnabled = true
+end
+
+function Grapher:StopVisualizer()
+    Grapher.VisualizerEnabled = false
+    Grapher:WipeMarkers()
+end
+
+workspace.ChildAdded:Connect(function(child)
+    if child.Name == "Football" and child:IsA("BasePart") then
+        local connection
+        connection = child:GetPropertyChangedSignal("Velocity"):Connect(function()
+            if Grapher.VisualizerEnabled then
+                Grapher:GetLanding(child.Position, child.Velocity, child)
+            end
+            connection:Disconnect()
+        end)
+    end
 end)
+
+return Grapher
