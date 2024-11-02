@@ -267,5 +267,51 @@ end)
 example1:AddToggle("No Jump Cooldown", function(state)
     getgenv().nojpcd = (state and true or false)
 humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
-end
+     end
+ end)
+
+example1:AddToggle("Optimal Jump", function(state)
+    getgenv().opju = (state and true or false)
+task.spawn(function()
+    if not optimalJumpPredictions.Value then return end
+    local initialVelocity = ball.AssemblyLinearVelocity
+    local optimalPosition = Vector3.zero
+    local currentPosition = ball.Position
+    local t = 0
+
+    while true do
+        t += 0.05
+        initialVelocity += Vector3.new(0, -28 * 0.05, 0)
+        currentPosition += initialVelocity * 0.05
+        
+        local raycastParams = RaycastParams.new()
+        raycastParams.FilterDescendantsInstances = {workspace:FindFirstChild("Models")}
+        raycastParams.FilterType = Enum.RaycastFilterType.Include
+
+        local ray = workspace:Raycast(currentPosition, Vector3.new(0, optimalJumpType.Value == "Jump" and -13 or -15, 0), raycastParams)
+        local antiCrashRay = workspace:Raycast(currentPosition, Vector3.new(0, -500, 0), raycastParams)
+
+        if ray and t > 0.75 then
+            optimalPosition = ray.Position + Vector3.new(0, 2, 0)
+            break
+        end
+
+        if not antiCrashRay then
+            optimalPosition = currentPosition
+            break
+        end
+    end
+
+    local part = Instance.new("Part")
+    part.Anchored = true
+    part.Material = Enum.Material.Neon
+    part.Size = Vector3.new(1.5, 1.5, 1.5)
+    part.Position = optimalPosition
+    part.CanCollide = false
+    part.Shape = Enum.PartType.Ball
+    part.Parent = workspace
+
+    repeat task.wait() until ball.Parent ~= workspace
+
+    part:Destroy()
 end)
