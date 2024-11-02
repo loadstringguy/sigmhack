@@ -266,11 +266,9 @@ end)
 
 example1:AddToggle("No Jump Cooldown", function(state)
     getgenv().nojpcd = (state and true or false)
-        Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
-    else
-        Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
-    end
-end)
+        while true do
+            humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
+        end
 
 example1:AddToggle("Optimal Jump", function(state)
     getgenv().opju = (state and true or false)
