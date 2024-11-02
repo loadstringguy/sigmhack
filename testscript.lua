@@ -80,6 +80,45 @@ example:AddToggle("Magnets", function(state)
     end)
 end)
 
+example:AddToggle("View MS Hitbox", function(state)
+        getfenv().mshitbox = (state and true or false)
+
+local magnetEnabled = true
+local hitboxSize = Vector3.new(25, 25, 25)
+local hitboxColor = Color3.fromRGB(255, 255, 255)
+
+local function createHitbox(target)
+    if not target:IsA("BasePart") then return end
+
+    local hitbox = Instance.new("Part")
+    hitbox.Size = hitboxSize
+    hitbox.Transparency = 0.5
+    hitbox.Color = hitboxColor
+    hitbox.Anchored = true
+    hitbox.CanCollide = false
+    hitbox.Material = Enum.Material.ForceField
+    hitbox.Name = "MagnetHitbox"
+    hitbox.CFrame = target.CFrame
+    hitbox.Parent = target
+
+    local function updateHitbox()
+        while magnetEnabled and target and target.Parent do
+            hitbox.CFrame = target.CFrame
+            task.wait()
+        end
+        hitbox:Destroy()
+    end
+
+    task.spawn(updateHitbox)
+end
+
+workspace.ChildAdded:Connect(function(child)
+    if child.Name == "Football" and child:IsA("BasePart") and magnetEnabled then
+        createHitbox(child)
+    end
+end)
+
+
 local example = Library:CreateWindow({
     text = "Physics"
 })
