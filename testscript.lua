@@ -108,125 +108,126 @@ example:AddToggle("Quick TP", function(state)
     userInputService.InputBegan:Connect(onInputBegan)
 end)
 
-
-    example:AddToggle("Ball Path Prediction", function(state)
+example:AddToggle("Ball Path Prediction", function(state)
     getgenv().pathpred = (state and true or false)
+    
     local Grapher = {}
 
-Grapher.Segment = Instance.new("Part")
-Grapher.Segment.Anchored = true
-Grapher.Segment.Transparency = 0.3
-Grapher.Segment.Color = Color3.fromRGB(255, 255, 255) -- White color
-Grapher.Segment.Material = Enum.Material.Neon
-Grapher.Segment.CanCollide = false
-Grapher.Segment.Size = Vector3.new(0.2, 0.2, 0.2)
-Grapher.Segment.Name = "BeamSegment"
+    Grapher.Segment = Instance.new("Part")
+    Grapher.Segment.Anchored = true
+    Grapher.Segment.Transparency = 0.3
+    Grapher.Segment.Color = Color3.fromRGB(255, 255, 255) -- White color
+    Grapher.Segment.Material = Enum.Material.Neon
+    Grapher.Segment.CanCollide = false
+    Grapher.Segment.Size = Vector3.new(0.2, 0.2, 0.2)
+    Grapher.Segment.Name = "BeamSegment"
 
-Grapher.Params = RaycastParams.new()
-Grapher.Params.IgnoreWater = true
-Grapher.Params.FilterType = Enum.RaycastFilterType.Whitelist
+    Grapher.Params = RaycastParams.new()
+    Grapher.Params.IgnoreWater = true
+    Grapher.Params.FilterType = Enum.RaycastFilterType.Whitelist
 
-Grapher.CastStep = 3 / 60
-Grapher.LastSavedPower = 60
-Grapher.SegmentLifetime = 8
-Grapher.VisualizerEnabled = true -- Start the visualizer instantly
+    Grapher.CastStep = 3 / 60
+    Grapher.LastSavedPower = 60
+    Grapher.SegmentLifetime = 8
+    Grapher.VisualizerEnabled = true -- Start the visualizer instantly
 
-function Grapher:GetCollidables()
-    local Collidables = {}
+    function Grapher:GetCollidables()
+        local Collidables = {}
 
-    for _, part in ipairs(workspace:GetDescendants()) do
-        if part:IsA("BasePart") and part.CanCollide == true then
-            table.insert(Collidables, part)
-        end
-    end
-    return Collidables
-end
-
-function Grapher:WipeMarkers()
-    for _, obj in pairs(workspace:GetChildren()) do
-        if obj.Name == "BeamSegment" then
-            obj:Destroy()
-        end
-    end
-end
-
-function Grapher:GetLanding(origin, velocity, target)
-    local elapsed = 0
-    local prevPos = origin
-
-    self.Params.FilterDescendantsInstances = self:GetCollidables()
-
-    local highlight = nil
-
-    if target then
-        for _, existing in ipairs(game.CoreGui:GetChildren()) do
-            if existing:IsA("Highlight") and existing.Adornee == target then
-                wait(4)
-                existing:Destroy()
+        for _, part in ipairs(workspace:GetDescendants()) do
+            if part:IsA("BasePart") and part.CanCollide == true then
+                table.insert(Collidables, part)
             end
         end
-
-        highlight = Instance.new("Highlight", game.CoreGui)
-        highlight.Adornee = target
-        highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-        highlight.Enabled = true
-        highlight.OutlineColor = Grapher.Segment.Color
-        highlight.OutlineTransparency = Grapher.Segment.Transparency
-        highlight.FillColor = Color3.fromRGB(255, 255, 255)
-        highlight.FillTransparency = 0.7
+        return Collidables
     end
 
-    while Grapher.VisualizerEnabled do
-        elapsed = elapsed + Grapher.CastStep
-        local nextPos = origin + velocity * elapsed - Vector3.new(0, 0.5 * 28 * elapsed ^ 2, 0)
-
-        -- Create the beam segment
-        local segment = self.Segment:Clone()
-        segment.Position = (prevPos + nextPos) / 2
-        segment.Size = Vector3.new(0.2, 0.2, (prevPos - nextPos).magnitude)
-        segment.CFrame = CFrame.new(prevPos, nextPos) * CFrame.new(0, 0, -segment.Size.Z / 2)
-        segment.Color = Grapher.Segment.Color
-        segment.Transparency = Grapher.Segment.Transparency
-        segment.Parent = workspace
-
-        -- Destroy the beam segment after the defined lifetime
-        task.delay(Grapher.SegmentLifetime, function()
-            if segment and segment.Parent then
-                segment:Destroy()
+    function Grapher:WipeMarkers()
+        for _, obj in pairs(workspace:GetChildren()) do
+            if obj.Name == "BeamSegment" then
+                obj:Destroy()
             end
-        end)
+        end
+    end
 
-        prevPos = nextPos
+    function Grapher:GetLanding(origin, velocity, target)
+        local elapsed = 0
+        local prevPos = origin
 
-        if target and highlight and (target.Parent ~= workspace or not target:FindFirstChildOfClass("BodyForce")) then
-            highlight:Destroy()
-            self:WipeMarkers()
-            break
+        self.Params.FilterDescendantsInstances = self:GetCollidables()
+
+        local highlight = nil
+
+        if target then
+            for _, existing in ipairs(game.CoreGui:GetChildren()) do
+                if existing:IsA("Highlight") and existing.Adornee == target then
+                    wait(4)
+                    existing:Destroy()
+                end
+            end
+
+            highlight = Instance.new("Highlight", game.CoreGui)
+            highlight.Adornee = target
+            highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+            highlight.Enabled = true
+            highlight.OutlineColor = Grapher.Segment.Color
+            highlight.OutlineTransparency = Grapher.Segment.Transparency
+            highlight.FillColor = Color3.fromRGB(255, 255, 255)
+            highlight.FillTransparency = 0.7
         end
 
-        task.wait()
-    end
-end
+        while Grapher.VisualizerEnabled do
+            elapsed = elapsed + Grapher.CastStep
+            local nextPos = origin + velocity * elapsed - Vector3.new(0, 0.5 * 28 * elapsed ^ 2, 0)
 
-function Grapher:StartVisualizer()
-    Grapher.VisualizerEnabled = true
-end
+            -- Create the beam segment
+            local segment = self.Segment:Clone()
+            segment.Position = (prevPos + nextPos) / 2
+            segment.Size = Vector3.new(0.2, 0.2, (prevPos - nextPos).magnitude)
+            segment.CFrame = CFrame.new(prevPos, nextPos) * CFrame.new(0, 0, -segment.Size.Z / 2)
+            segment.Color = Grapher.Segment.Color
+            segment.Transparency = Grapher.Segment.Transparency
+            segment.Parent = workspace
 
-function Grapher:StopVisualizer()
-    Grapher.VisualizerEnabled = false
-    Grapher:WipeMarkers()
-end
+            -- Destroy the beam segment after the defined lifetime
+            task.delay(Grapher.SegmentLifetime, function()
+                if segment and segment.Parent then
+                    segment:Destroy()
+                end
+            end)
 
-workspace.ChildAdded:Connect(function(child)
-    if child.Name == "Football" and child:IsA("BasePart") then
-        local connection
-        connection = child:GetPropertyChangedSignal("Velocity"):Connect(function()
-            if Grapher.VisualizerEnabled then
-                Grapher:GetLanding(child.Position, child.Velocity, child)
+            prevPos = nextPos
+
+            if target and highlight and (target.Parent ~= workspace or not target:FindFirstChildOfClass("BodyForce")) then
+                highlight:Destroy()
+                self:WipeMarkers()
+                break
             end
-            connection:Disconnect()
-        end)
+
+            task.wait()
+        end
     end
+
+    function Grapher:StartVisualizer()
+        Grapher.VisualizerEnabled = true
+    end
+
+    function Grapher:StopVisualizer()
+        Grapher.VisualizerEnabled = false
+        Grapher:WipeMarkers()
+    end
+
+    workspace.ChildAdded:Connect(function(child)
+        if child.Name == "Football" and child:IsA("BasePart") then
+            local connection
+            connection = child:GetPropertyChangedSignal("Velocity"):Connect(function()
+                if Grapher.VisualizerEnabled then
+                    Grapher:GetLanding(child.Position, child.Velocity, child)
+                end
+                connection:Disconnect()
+            end)
+        end
+    end)
+
+    return Grapher
 end)
-
-return Grapher
