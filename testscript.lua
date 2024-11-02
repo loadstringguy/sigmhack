@@ -145,35 +145,35 @@ example:AddToggle("Quick TP Mobile Button", function(state)
     end)
 
     example:AddToggle("Ball Path Prediction", function(state)
-                getgenv().pathpred = (state and true or false)
+    getgenv().pathpred = (state and true or false)
 
-task.spawn(function()
-    if not visualiseBallPath.Value then return end
-    local initialVelocity = ball.AssemblyLinearVelocity
-    local a0, a1 = Instance.new("Attachment"), Instance.new("Attachment")
-    a0.Parent = workspace.Terrain
-    a1.Parent = workspace.Terrain
+    task.spawn(function()
+        if not getgenv().pathpred then return end
+        local initialVelocity = ball.AssemblyLinearVelocity
+        local a0, a1 = Instance.new("Attachment"), Instance.new("Attachment")
+        a0.Parent = workspace.Terrain
+        a1.Parent = workspace.Terrain
 
-    local beam = Instance.new("Beam", workspace.Terrain)
-    beam.Attachment0 = a0
-    beam.Attachment1 = a1
-    beam.Segments = 500
-    beam.Width0 = 0.5
-    beam.Width1 = 0.5
-    beam.Transparency = NumberSequence.new(0)
-    beam.Color = ColorSequence.new(Color3.new(1, 1, 1)) -- White color
+        local beam = Instance.new("Beam", workspace.Terrain)
+        beam.Attachment0 = a0
+        beam.Attachment1 = a1
+        beam.Segments = 500
+        beam.Width0 = 0.5
+        beam.Width1 = 0.5
+        beam.Transparency = NumberSequence.new(0)
+        beam.Color = ColorSequence.new(Color3.new(1, 1, 1)) -- White color
 
-    local g = Vector3.new(0, -28, 0)
-    local x0 = ball.Position
-    local v0 = initialVelocity
+        local g = Vector3.new(0, -28, 0)
+        local x0 = ball.Position
+        local v0 = initialVelocity
 
-    local curve0, curve1, cf1, cf2 = beamProjectile(g, v0, x0, 5)
-    beam.CurveSize0 = curve0
-    beam.CurveSize1 = curve1
-    a0.CFrame = a0.Parent.CFrame:Inverse() * cf1
-    a1.CFrame = a1.Parent.CFrame:Inverse() * cf2
+        local curve0, curve1, cf1, cf2 = beamProjectile(g, v0, x0, 5)
+        beam.CurveSize0 = curve0
+        beam.CurveSize1 = curve1
+        a0.CFrame = a0.Parent.CFrame:Inverse() * cf1
+        a1.CFrame = a1.Parent.CFrame:Inverse() * cf2
 
-    repeat task.wait() until ball.Parent ~= workspace
-    beam:Destroy()
-           end
+        repeat task.wait() until ball.Parent ~= workspace
+        beam:Destroy()
     end)
+end)
