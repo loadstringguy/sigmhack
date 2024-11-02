@@ -109,7 +109,7 @@ example:AddToggle("Quick TP", function(state)
 end)
 
 example:AddToggle("Quick TP Mobile Button", function(state)
-    getgenv().button = (state and true or false)
+    getgenv().MobileQuickTPButton = (state and true or false)
 
     local function createMobileQuickTPButton()
         local screenGui = Instance.new("ScreenGui", player:FindFirstChildOfClass("PlayerGui"))
